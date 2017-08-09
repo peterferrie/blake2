@@ -152,83 +152,6 @@ void BLAKE2B_string (char *str, char *key)
   printf ("\nBLAKE2B(\"%s\")\n0x", str);
 }
 
-void progress (uint64_t fs_complete, uint64_t fs_total)
-{
-  int           days=0, hours=0, minutes=0;
-  uint64_t      t, pct, speed, seconds=0;
-  static time_t start=0;
-  
-  if (start==0) {
-    start=time(0);
-    return;
-  }
-  
-  pct = (100*fs_complete)/fs_total;
-  
-  t = (time(0) - start);
-  
-  if (t != 0) {
-    seconds = (fs_total - fs_complete) / (fs_complete / t);
-    speed   = (fs_complete / t);
-    
-    days=0;
-    hours=0;
-    minutes=0;
-    
-    if (seconds>=60) {
-      minutes = (seconds / 60);
-      seconds %= 60;
-      if (minutes>=60) {
-        hours = minutes / 60;
-        minutes %= 60;
-        if (hours>=24) {
-          days = hours/24;
-          hours %= 24;
-        }
-      }
-    }
-  printf ("\rProcessed %llu MB out of %llu MB at %llu MB/s : %llu%% complete. ETA: %03d:%02d:%02d:%02d",
-    fs_complete/1000/1000, fs_total/1000/1000, speed/1000/1000, pct, days, hours, minutes, (int)seconds);
-  }
-}
-
-// generate BLAKE2B hash of file
-void BLAKE2B_file (char fn[], char *key)
-{
-  FILE        *fd;
-  b2b_ctx ctx;
-  size_t      len;
-  uint8_t     buf[BUFSIZ], dgst[256];
-  struct stat st;
-  uint32_t    cmp=0, total=0;
-  
-  fd = fopen (fn, "rb");
-  
-  if (fd!=NULL)
-  {
-    stat (fn, &st);
-    total=st.st_size;
-    
-    b2b_init (&ctx, BLAKE2b_DIGEST_LENGTH, key, key!=NULL ? strlen (key) : 0, 0);
-    
-    while (len = fread (buf, 1, BUFSIZ, fd)) {
-      cmp += len;
-      if ((cmp > 10000000) && ((cmp % 10000000)==0 || cmp==total)) {
-        progress (cmp, total);
-      }
-      b2b_update (&ctx, buf, len);
-    }
-    b2b_final (dgst, &ctx);
-
-    fclose (fd);
-
-    printf ("\n  [ BLAKE2B (%s) = ", fn);
-    BLAKE2B_print (dgst, BLAKE2b_DIGEST_LENGTH);
-  } else {
-    printf ("  [ unable to open %s\n", fn);
-  }
-}
-
 char* getparam (int argc, char *argv[], int *i)
 {
   int n=*i;
@@ -245,10 +168,10 @@ char* getparam (int argc, char *argv[], int *i)
 
 void usage (void)
 {
-  printf ("\n  usage: b2b_test -t <type> -f <file> -s <string>\n");
+  printf ("\n  usage: b2b_test -t <type> -s <string>\n");
   printf ("\n  -k <type>   Key for MAC");
   printf ("\n  -s <string> Derive BLAKE2B hash of <string>");
-  printf ("\n  -f <file>   Derive BLAKE2B hash of <file>");
+  //printf ("\n  -f <file>   Derive BLAKE2B hash of <file>");
   printf ("\n  -x          Run tests\n");
   exit (0);
 }
@@ -257,7 +180,8 @@ int main (int argc, char *argv[])
 {
   char opt;
   int i, test=0, wc=0;
-  char *file=NULL, *str=NULL, *key=NULL;
+  //char *file=NULL;
+  char *str=NULL, *key=NULL;
   
   // for each argument
   for (i=1; i<argc; i++)
@@ -272,9 +196,9 @@ int main (int argc, char *argv[])
         case 's':
           str=getparam (argc, argv, &i);
           break;
-        case 'f':
+        /**case 'f':
           file=getparam (argc, argv, &i);
-          break;
+          break;*/
         case 'k':
           key=getparam (argc, argv, &i);
           break;
@@ -300,14 +224,14 @@ int main (int argc, char *argv[])
     }
   } else if (str!=NULL) {
     BLAKE2B_string (str, key);
-  } else if (file!=NULL || wc!=0) {
+  /**} else if (file!=NULL || wc!=0) {
     if (wc!=0) {
       while (argv[wc]!=NULL) {
         BLAKE2B_file (argv[wc++], key);
       }
     } else {
       BLAKE2B_file (file, key);
-    }
+    }*/
   } else {
     usage ();
   }

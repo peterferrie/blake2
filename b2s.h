@@ -32,27 +32,7 @@
 
 #include <stdint.h>
 
-#define U8V(v)  ((uint8_t)(v)  & 0xFFU)
-#define U16V(v) ((uint16_t)(v) & 0xFFFFU)
-#define U32V(v) ((uint32_t)(v) & 0xFFFFFFFFUL)
-#define U64V(v) ((uint64_t)(v) & 0xFFFFFFFFFFFFFFFFULL)
-
-#define ROTL8(v, n) \
-  (U8V((v) << (n)) | ((v) >> (8 - (n))))
-
-#define ROTL16(v, n) \
-  (U16V((v) << (n)) | ((v) >> (16 - (n))))
-
-#define ROTL32(v, n) \
-  (U32V((v) << (n)) | ((v) >> (32 - (n))))
-
-#define ROTL64(v, n) \
-  (U64V((v) << (n)) | ((v) >> (64 - (n))))
-
-#define ROTR8(v, n) ROTL8(v, 8 - (n))
-#define ROTR16(v, n) ROTL16(v, 16 - (n))
-#define ROTR32(v, n) ROTL32(v, 32 - (n))
-#define ROTR64(v, n) ROTL64(v, 64 - (n))
+#include "macros.h"
 
 #define BLAKE2s_CBLOCK        64
 #define BLAKE2s_DIGEST_LENGTH 32
@@ -62,35 +42,31 @@
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 typedef union blake_st_t {
-  uint8_t v8[BLAKE2s_DIGEST_LENGTH];
-  uint16_t v16[BLAKE2s_DIGEST_LENGTH/2];
-  uint32_t v32[BLAKE2s_DIGEST_LENGTH/4];
-  uint64_t v64[BLAKE2s_DIGEST_LENGTH/8];
+  uint8_t  b[BLAKE2s_DIGEST_LENGTH];
+  uint32_t w[BLAKE2s_DIGEST_LENGTH/4];
+  uint64_t q[BLAKE2s_DIGEST_LENGTH/8];
 } blake_st;
 
 typedef union blake_blk_t {
-  uint8_t v8[BLAKE2s_CBLOCK];
-  uint16_t v16[BLAKE2s_CBLOCK/2];
-  uint32_t v32[BLAKE2s_CBLOCK/4];
-  uint64_t v64[BLAKE2s_CBLOCK/8];
+  uint8_t  b[BLAKE2s_CBLOCK];
+  uint32_t w[BLAKE2s_CBLOCK/4];
+  uint64_t q[BLAKE2s_CBLOCK/8];
 } blake_blk;
 
 typedef union blake_len_t {
-  uint8_t   v8[8];
-  uint16_t v16[4];
-  uint32_t v32[2];
-  uint64_t v64;
+  uint8_t  b[8];
+  uint32_t w[2];
+  uint64_t q;
 } blake_len;
 
 #pragma pack(push, 1)
 typedef struct _b2s_ctx {
-  blake_st  state;
+  blake_st  s;
   blake_st  b2s_iv;
-  blake_blk buffer;
+  blake_blk x;
   blake_len len;
-  uint32_t  index;
+  uint32_t  idx;
   uint32_t  outlen;
-  uint32_t  rounds;
   uint16_t  v_idx[8];
   uint64_t  sigma[10];
 } b2s_ctx;
@@ -106,15 +82,10 @@ extern "C" {
   
   void b2s_initx (b2s_ctx*, uint32_t, void*, uint32_t, uint32_t);
   void b2s_updatex (b2s_ctx*, void*, uint32_t);
-  void b2s_finalx (void*, b2s_ctx*);  
+  void b2s_finalx (void*, b2s_ctx*);
+  
 #ifdef __cplusplus
 }
-#endif
-
-#ifdef USE_ASM
-#define b2s_init(v, w, x, y, z) b2s_initx (v, w, x, y, z)
-#define b2s_update(x, y, z) b2s_updatex (x, y, z)
-#define b2s_final(y, z) b2s_finalx (y, z)
 #endif
 
 #endif

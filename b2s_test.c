@@ -93,7 +93,7 @@ uint32_t run_tests (void)
     hex2bin (tv, BLAKE2s_dgst[i]);
     
     if (memcmp (dgst, tv, BLAKE2s_DIGEST_LENGTH) != 0) {
-      printf ("\nFailed for string len %u: %s", 
+      printf ("\nFailed for string len %ld: %s", 
         strlen(text[i]), text[i]);
       ++fails;
     }
@@ -152,83 +152,6 @@ void BLAKE2s_string (char *str, char *key)
   BLAKE2s_print (dgst, BLAKE2s_DIGEST_LENGTH);
 }
 
-void progress (uint64_t fs_complete, uint64_t fs_total)
-{
-  int           days=0, hours=0, minutes=0;
-  uint64_t      t, pct, speed, seconds=0;
-  static time_t start=0;
-  
-  if (start==0) {
-    start=time(0);
-    return;
-  }
-  
-  pct = (100*fs_complete)/fs_total;
-  
-  t = (time(0) - start);
-  
-  if (t != 0) {
-    seconds = (fs_total - fs_complete) / (fs_complete / t);
-    speed   = (fs_complete / t);
-    
-    days=0;
-    hours=0;
-    minutes=0;
-    
-    if (seconds>=60) {
-      minutes = (seconds / 60);
-      seconds %= 60;
-      if (minutes>=60) {
-        hours = minutes / 60;
-        minutes %= 60;
-        if (hours>=24) {
-          days = hours/24;
-          hours %= 24;
-        }
-      }
-    }
-  printf ("\rProcessed %llu MB out of %llu MB at %llu MB/s : %llu%% complete. ETA: %03d:%02d:%02d:%02d",
-    fs_complete/1000/1000, fs_total/1000/1000, speed/1000/1000, pct, days, hours, minutes, (int)seconds);
-  }
-}
-
-// generate BLAKE2s hash of file
-void BLAKE2s_file (char fn[], char *key)
-{
-  FILE        *fd;
-  b2s_ctx ctx;
-  size_t      len;
-  uint8_t     buf[BUFSIZ], dgst[256];
-  struct stat st;
-  uint32_t    cmp=0, total=0;
-  
-  fd = fopen (fn, "rb");
-  
-  if (fd!=NULL)
-  {
-    stat (fn, &st);
-    total=st.st_size;
-    
-    b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, key, key!=NULL ? strlen (key) : 0, 0);
-    
-    while ((len = fread (buf, 1, BUFSIZ, fd))) {
-      cmp += len;
-      if ((cmp > 10000000) && ((cmp % 10000000)==0 || cmp==total)) {
-        progress (cmp, total);
-      }
-      b2s_update (&ctx, buf, len);
-    }
-    b2s_final (dgst, &ctx);
-
-    fclose (fd);
-
-    printf ("\n  [ BLAKE2s (%s) = ", fn);
-    BLAKE2s_print (dgst, BLAKE2s_DIGEST_LENGTH);
-  } else {
-    printf ("  [ unable to open %s\n", fn);
-  }
-}
-
 void b2s_hash (void *input, uint32_t inlen, 
 	void *output, uint32_t outlen)
 {
@@ -260,10 +183,10 @@ char* getparam (int argc, char *argv[], int *i)
 
 void usage (void)
 {
-  printf ("\n  usage: b2s_test -t <type> -f <file> -s <string>\n");
+  printf ("\n  usage: b2s_test -t <type> -s <string>\n");
   printf ("\n  -k <type>   Key for MAC");
   printf ("\n  -s <string> Derive BLAKE2s hash of <string>");
-  printf ("\n  -f <file>   Derive BLAKE2s hash of <file>");
+  //printf ("\n  -f <file>   Derive BLAKE2s hash of <file>");
   printf ("\n  -x          Run tests\n");
   exit (0);
 }
@@ -272,7 +195,8 @@ int main (int argc, char *argv[])
 {
   char opt;
   int i, test=0, wc=0;
-  char *file=NULL, *str=NULL, *key=NULL;
+  //char *file=NULL;
+  char *str=NULL, *key=NULL;
   
   // for each argument
   for (i=1; i<argc; i++)
@@ -287,9 +211,9 @@ int main (int argc, char *argv[])
         case 's':
           str=getparam (argc, argv, &i);
           break;
-        case 'f':
+        /**case 'f':
           file=getparam (argc, argv, &i);
-          break;
+          break;*/
         case 'k':
           key=getparam (argc, argv, &i);
           break;
@@ -315,14 +239,14 @@ int main (int argc, char *argv[])
     }
   } else if (str!=NULL) {
     BLAKE2s_string (str, key);
-  } else if (file!=NULL || wc!=0) {
+  /**} else if (file!=NULL || wc!=0) {
     if (wc!=0) {
       while (argv[wc]!=NULL) {
         BLAKE2s_file (argv[wc++], key);
       }
     } else {
       BLAKE2s_file (file, key);
-    }
+    }*/
   } else {
     usage ();
   }
