@@ -116,7 +116,7 @@ void b2b_compress (b2b_ctx *c, int last)
 
 // initialize context. key and rnds are optional
 void b2b_init (b2b_ctx *c, uint32_t outlen, 
-  void *key, uint32_t keylen, uint32_t rnds)
+  void *key, uint32_t keylen)
 {
     uint32_t i;
 
@@ -143,7 +143,7 @@ void b2b_init (b2b_ctx *c, uint32_t outlen,
     // set length to zero
     c->len.q  = 0;
     // if key used, set idx to 128
-    c->idx  = keylen ? 128 : 0;
+    c->idx    = keylen ? 128 : 0;
     c->outlen = outlen;
 
     // copy optional key

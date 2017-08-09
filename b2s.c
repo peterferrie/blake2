@@ -115,7 +115,7 @@ void b2s_compress (b2s_ctx *c, int last)
 
 // initialize context. key and rnds are optional
 void b2s_init (b2s_ctx *c, uint32_t outlen, 
-  void *key, uint32_t keylen, uint32_t rnds)
+  void *key, uint32_t keylen)
 {
     uint32_t i;
 

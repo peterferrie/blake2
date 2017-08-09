@@ -62,7 +62,6 @@ struc b2s_ctx
   len    resd 2
   index  resd 1
   outlen resd 1
-  rounds resd 1
 endstruc
 
 %define a eax
@@ -166,8 +165,8 @@ b2t_l1:                      ; first is ctx->state
     neg    edx
     xor    [edi+14*4-64], edx
     
-    ; do minimum of 10 rounds
-    mov    ecx, [esi+8]
+    ; do 10 rounds
+    mov    cl, 10
 b2t_l2:
     xor    esi, esi
 b2t_l3:
@@ -253,15 +252,7 @@ _b2s_initx:
 b2_kl:
     ; ctx->outlen = outlen
     xchg   eax, ebx
-    stosd
-    ; ctx->rounds = rnds
-    mov    eax, [ebp+32+20]
-    ; minimum of 10
-    mov    bl, 10
-    cmp    eax, ebx
-    cmovb  eax, ebx
-    stosd
-    
+    stosd    
     mov    esi, [ebp+32+12] ; key
     pop    edi
     rep    movsb

@@ -76,11 +76,11 @@ typedef struct _b2s_ctx {
 extern "C" {
 #endif
 
-  void b2s_init (b2s_ctx*, uint32_t, void*, uint32_t, uint32_t);
+  void b2s_init (b2s_ctx*, uint32_t, void*, uint32_t);
   void b2s_update (b2s_ctx*, void*, uint32_t);
   void b2s_final (void*, b2s_ctx*);
   
-  void b2s_initx (b2s_ctx*, uint32_t, void*, uint32_t, uint32_t);
+  void b2s_initx (b2s_ctx*, uint32_t, void*, uint32_t);
   void b2s_updatex (b2s_ctx*, void*, uint32_t);
   void b2s_finalx (void*, b2s_ctx*);
   

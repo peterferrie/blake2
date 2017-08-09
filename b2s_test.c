@@ -13,6 +13,14 @@
 #include <sys/stat.h>
 #include <time.h>
 
+#ifdef ASM
+
+#define b2s_init(w,x,y,z) b2s_initx(w,x,y,z)
+#define b2s_update(x,y,z) b2s_updatex(x,y,z)
+#define b2s_final(x,y) b2s_finalx(x,y)
+
+#endif
+
 char *text[] =
 { "",
   "a",
@@ -86,7 +94,7 @@ uint32_t run_tests (void)
   
   for (i=0; i<sizeof(text)/sizeof(char*); i++)
   {
-    b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, NULL, 0, 0);
+    b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, NULL, 0);
     b2s_update (&ctx, text[i], strlen(text[i]));
     b2s_final (dgst, &ctx);
     
@@ -115,7 +123,7 @@ uint32_t run_xtests (void)
     keylen = hex2bin (key, BLAKE2s_key[i]);
     outlen = hex2bin (res, BLAKE2s_res[i]);
     
-    b2s_init (&ctx, outlen, key, keylen, 0);
+    b2s_init (&ctx, outlen, key, keylen);
     b2s_update (&ctx, input, inlen);
     b2s_final (dgst, &ctx);
     
@@ -145,7 +153,7 @@ void BLAKE2s_string (char *str, char *key)
 
   printf ("\nBLAKE2s(\"%s\")\n0x", str);
   
-  b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, key, key!=NULL ? strlen (key) : 0, 0);
+  b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, key, key!=NULL ? strlen (key) : 0);
   b2s_update (&ctx, str, strlen (str));
   b2s_final (dgst, &ctx);
   
@@ -160,7 +168,7 @@ void b2s_hash (void *input, uint32_t inlen,
 	
 	outlen=(outlen==0) ? 32 : outlen;
 	
-	b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, NULL, 0, 0);
+	b2s_init (&ctx, BLAKE2s_DIGEST_LENGTH, NULL, 0);
 	b2s_update (&ctx, input, inlen);
 	b2s_final (dgst, &ctx);
 	

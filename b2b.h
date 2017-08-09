@@ -76,7 +76,7 @@ typedef struct _b2b_ctx {
 extern "C" {
 #endif
 
-  void b2b_init (b2b_ctx*, uint32_t, void*, uint32_t, uint32_t);
+  void b2b_init (b2b_ctx*, uint32_t, void*, uint32_t);
   void b2b_update (b2b_ctx*, void*, uint32_t);
   void b2b_final (void*, b2b_ctx*);
   
